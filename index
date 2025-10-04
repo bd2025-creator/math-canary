@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Sophia — Canary Friend (PWA)</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0ea5e9">
+<style>
+:root{
+  --surface:#ffffff; --ink:#0b0f19; --muted:#5b6270; --line:#e6e8ed;
+  --brand:#0ea5e9; --brand-600:#0284c7; --accent:#8b5cf6;
+  --success:#16a34a; --danger:#dc2626;
+  --s2:8px; --s3:12px; --s4:16px; --s5:24px; --r:14px; --shadow:0 10px 24px rgba(2,8,23,.12);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--ink);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  background:radial-gradient(1200px 800px at -10% -10%, #0ea5e9 0%, #0b1220 55%),
+             radial-gradient(1000px 600px at 110% 0%, #8b5cf6 0%, transparent 60%),
+             radial-gradient(900px 700px at 50% 120%, #22d3ee 0%, transparent 65%);
+  overflow-x:hidden
+}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px calc(120px + env(safe-area-inset-bottom))}
+header{display:flex;gap:12px;align-items:center;color:#fff;margin-bottom:16px}
+.logo{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0ea5e9,#22d3ee 60%,#8b5cf6);box-shadow:0 12px 28px rgba(0,0,0,.18)}
+.logo svg{width:34px;height:34px}
+.title{font-weight:900;font-size:28px}
+.sub{font-size:13px;opacity:.9}
+.head{margin-left:auto;display:flex;gap:12px;align-items:center}
+.btn{padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow);margin-bottom:24px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.field,select,textarea{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.field{width:120px} textarea{width:100%;min-height:110px}
+.chip{padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:#f7f8fb;font-size:13px}
+.exp{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}
+h2{margin:0 0 12px 0}
+.hero{display:flex;gap:16px;align-items:center}
+.sunny{width:96px;height:96px;border-radius:50%;background:#fde047;border:3px solid #f59e0b;position:relative;flex:none;box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.sunny:after{content:'';position:absolute;left:56px;top:40px;border-left:14px solid #fb923c;border-top:10px solid transparent;border-bottom:10px solid transparent}
+.sunny .eye{position:absolute;left:34px;top:32px;width:8px;height:8px;background:#0b0f19;border-radius:50%}
+.sunny .wing{position:absolute;left:48px;top:56px;width:34px;height:22px;background:#facc15;border-radius:18px;animation:wing 1s ease-in-out infinite}
+@keyframes wing{0%,100%{transform:rotate(0)}50%{transform:rotate(10deg)}}
+.tabbar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  display:grid;grid-template-columns:repeat(6,1fr);gap:12px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff;min-height:64px;text-decoration:none;color:inherit}
+.tab.active{border-color:var(--brand);box-shadow:0 8px 18px rgba(2,132,199,.18)}
+.scene{display:none} .scene.show{display:block}
+.num{padding:2px 6px;border-radius:8px}
+.glow{box-shadow:0 0 0 2px rgba(14,165,233,.18),0 0 16px rgba(14,165,233,.22);background:rgba(14,165,233,.06)}
+.word{padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.word.sel{background:#dcfce7;border-color:#86efac}
+.choice{display:inline-flex;align-items:center;gap:8px;margin:4px 6px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+.choice.correct{background:#dcfce7;border-color:#86efac}
+.choice.wrong{background:#fee2e2;border-color:#fecaca}
+.bubbleNum{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:999px;border:2px solid var(--line);background:#fff;font-weight:900;margin:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 100 100"><circle cx="60" cy="60" r="32" fill="#fde047" stroke="#f59e0b" stroke-width="4"/><circle cx="40" cy="42" r="18" fill="#fde047" stroke="#f59e0b" stroke-width="4"/><circle cx="36" cy="40" r="3" fill="#0b0f19"/><polygon points="28,46 42,46 35,54" fill="#fb923c"/></svg>
+    </div>
+    <div>
+      <div class="title">Sophia — Canary Friend</div>
+      <div class="sub">Professional, friendly, and focused</div>
+    </div>
+    <div class="head"><button class="btn" id="muteBtn">🔊</button></div>
+  </header>
+
+  <!-- Home -->
+  <section id="home" class="card">
+    <div class="hero">
+      <div class="sunny" id="sunny"><div class="eye"></div><div class="wing"></div></div>
+      <div>
+        <h2>Hi Sophia! I’m Sunny 🐤</h2>
+        <div class="sub">Start with a check-in, then pick Math, Writing, or Reading.</div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" data-go="checkin">Check-in</button>
+          <button class="btn" data-go="math">Math</button>
+          <button class="btn" data-go="writing">Writing</button>
+          <button class="btn" data-go="reading">Reading</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Check-in -->
+  <section id="checkin" class="scene">
+    <div class="card">
+      <h2>Check-in</h2>
+      <div class="row">
+        <span class="chip">Feeling</span>
+        <select id="feeling">
+          <option>🙂 okay</option><option>😊 happy</option><option>🤩 excited</option><option>😐 meh</option><option>😟 sad</option><option>😞 upset</option><option>😠 frustrated</option><option>😴 tired</option><option>😌 calm</option><option>🤒 not well</option>
+        </select>
+        <span class="chip">1–10</span>
+        <select id="rating"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
+        <button class="btn" id="saveCheckin">Save</button>
+      </div>
+      <div style="margin-top:8px"><textarea id="why" placeholder="I feel this way because…"></textarea></div>
+      <div class="exp" id="feedback">Tell me how you feel and why. I’ll cheer you on or give a helpful tip.</div>
+    </div>
+  </section>
+
+  <!-- Math -->
+  <section id="math" class="scene">
+    <div class="card">
+      <h2>Math</h2>
+      <div class="row"><div class="chip">Add three numbers • pair to ≤19</div><div id="mathScore" class="chip">Score 0</div></div>
+      <div class="row" style="margin-top:8px"><span class="chip">Problems</span><input id="mathCount" class="field" value="8"><button class="btn" id="mathRegen">New set</button></div>
+      <div id="mathGrid" style="margin-top:12px;display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+  </section>
+
+  <!-- Writing -->
+  <section id="writing" class="scene">
+    <div class="card">
+      <h2>Writing</h2>
+      <div id="writeList" style="display:flex;flex-direction:column;gap:12px"></div>
+    </div>
+  </section>
+
+  <!-- Reading -->
+  <section id="reading" class="scene">
+    <div class="card">
+      <h2>Reading</h2>
+      <div class="exp" id="passage"></div>
+      <div id="readQ" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- Games -->
+  <section id="games" class="scene">
+    <div class="card">
+      <h2>Games</h2>
+      <div class="row"><button class="btn" id="gSentence">Sentence Builder</button><button class="btn" id="gPOS">POS Blitz</button><button class="btn" id="g19">Make 19</button></div>
+      <div id="arena" style="margin-top:10px"></div>
+    </div>
+  </section>
+</div>
+
+<!-- Tab bar -->
+<nav class="tabbar">
+  <a class="tab active" data-go="home"><div>🏠</div><span>Home</span></a>
+  <a class="tab" data-go="checkin"><div>💬</div><span>Check-in</span></a>
+  <a class="tab" data-go="math"><div>🧮</div><span>Math</span></a>
+  <a class="tab" data-go="writing"><div>✍️</div><span>Writing</span></a>
+  <a class="tab" data-go="reading"><div>📖</div><span>Reading</span></a>
+  <a class="tab" data-go="games"><div>🎮</div><span>Games</span></a>
+</nav>
+
+<script>
+const qs=(s,e=document)=>e.querySelector(s), qsa=(s,e=document)=>[...e.querySelectorAll(s)];
+function go(id){
+  ['home','checkin','math','writing','reading','games'].forEach(x=>{const el=qs('#'+x); if(el) el.classList.remove('show')});
+  if(id==='home') qs('#home').classList.add('show'); else qs('#'+id).classList.add('show');
+  qsa('.tab').forEach(t=>t.classList.remove('active')); (qsa('.tab[data-go="'+id+'"]')[0]||qsa('.tab[data-go="home"]')[0]).classList.add('active');
+}
+qsa('.tab').forEach(t=>t.addEventListener('click',()=>go(t.dataset.go)));
+qsa('button[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+go('home');
+
+// sound/haptics (simple)
+let MUTED=false, ACTX=null; function audio(){ if(!ACTX){ ACTX=new (window.AudioContext||window.webkitAudioContext)(); } return ACTX; }
+function tone(f=880,d=.12){ if(MUTED) return; const c=audio(),o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=f; g.gain.value=.22; o.connect(g); g.connect(c.destination); o.start(); setTimeout(()=>{ g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+.05); o.stop(c.currentTime+.06); }, d*1000); }
+function ok(){ tone(880,.12); setTimeout(()=>tone(1175,.12),110); if(navigator.vibrate) navigator.vibrate([10,20,10]); }
+function no(){ if(!MUTED){ const c=audio(),o=c.createOscillator(),g=c.createGain(); o.type='triangle'; o.frequency.value=220; g.gain.value=.24; o.connect(g); g.connect(c.destination); o.start(); setTimeout(()=>{ g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+.06); o.stop(c.currentTime+.08); }, 180);} if(navigator.vibrate) navigator.vibrate([25,50,25]); }
+qs('#muteBtn').addEventListener('click',()=>{ MUTED=!MUTED; qs('#muteBtn').textContent=MUTED?'🔈':'🔊'; });
+qs('#sunny').addEventListener('pointerdown',()=> ok());
+
+// Check-in
+function fb(feel,rate,why){ const r=parseInt(rate,10);
+  let msg = r<=3 ? "Thanks for sharing. Let’s take 3 deep breaths. I’ll keep problems friendly."
+           : r<=7 ? "Nice! Warm-up then build momentum."
+                   : "Love the energy! A touch of challenge today.";
+  if(why && why.trim()) msg += " I hear you: “" + why.trim().slice(0,140) + (why.trim().length>140?"…":"") + "”";
+  msg += r<=3 ? " 💛 I’m here with you." : r<=7 ? " 💪 You’ve got this." : " 🚀 Let’s soar.";
+  return msg;
+}
+const last=JSON.parse(localStorage.getItem('canary_checkin_pwa')||'null');
+if(last){ qs('#feeling').value=last.f; qs('#rating').value=String(last.r); qs('#why').value=last.w; qs('#feedback').textContent=fb(last.f,last.r,last.w); }
+qs('#saveCheckin').addEventListener('click',()=>{ const f=qs('#feeling').value, r=qs('#rating').value, w=qs('#why').value;
+  qs('#feedback').textContent=fb(f,r,w); localStorage.setItem('canary_checkin_pwa', JSON.stringify({f,r,w,at:Date.now()})); ok(); });
+
+// Math (≤19)
+function pair19(a,b,c){ const ps=[[a,b],[a,c],[b,c]]; let best=null,sum=-1; for(const [x,y] of ps){const s=x+y; if(s<=19&&s>sum){best=[x,y]; sum=s}} if(!best) best=ps.sort((m,n)=>(m[0]+m[1])-(n[0]+n[1]))[0]; return best; }
+function explain(a,b,c,g){ const sum=a+b+c; const [x,y]=pair19(a,b,c); const rest=(x===a&&y===b)?c:(x===a&&y===c)?b:a;
+  const s1=`${x}+${y}=${x+y}${x+y===19?' (19!)':x+y<19?' (close)':''}`, s2=`${x+y}+${rest}=${sum}`;
+  if(!g) return {ok:null,text:`Hint ≤19: ${s1} → ${s2}`}; if(+g===sum) return {ok:true,text:`Great: ${s1} → ${s2}`}; return {ok:false,text:`Correct=${sum}. ${s1} → ${s2}`};
+}
+let mathScore=0;
+function addMath(a,b,c){
+  const grid=qs('#mathGrid'); const card=document.createElement('div'); card.className='card';
+  const row=document.createElement('div'); row.className='row'; row.style.fontWeight='900'; row.style.fontSize='20px';
+  const nums=[a,b,c].map(n=>{const s=document.createElement('span'); s.textContent=n; s.className='num'; return s});
+  const [x,y]=pair19(a,b,c); nums.forEach(s=>{if(+s.textContent===x||+s.textContent===y) s.classList.add('glow')});
+  const plus=()=>{const p=document.createElement('span'); p.textContent='+'; return p}; const eq=document.createElement('span'); eq.textContent='=';
+  const input=document.createElement('input'); input.className='field'; input.placeholder='?';
+  row.append(nums[0],plus(),nums[1],plus(),nums[2],eq,input);
+  const exp=document.createElement('div'); exp.className='exp'; exp.textContent=explain(a,b,c,'').text;
+  card.append(row,exp); grid.append(card);
+  input.addEventListener('input',()=>{ const was=input.dataset.ok==='1'; const r=explain(a,b,c,input.value); exp.textContent=r.text;
+    if(!was && r.ok===true){ input.dataset.ok='1'; mathScore++; qs('#mathScore').textContent='Score '+mathScore; ok(); }
+    else if(was && r.ok!==true){ input.dataset.ok='0'; mathScore=Math.max(0,mathScore-1); qs('#mathScore').textContent='Score '+mathScore; no(); }
+  });
+}
+function regenMath(){ mathScore=0; qs('#mathScore').textContent='Score 0'; qs('#mathGrid').innerHTML=''; const n=parseInt(qs('#mathCount').value,10)||8; for(let i=0;i<n;i++){ addMath(Math.floor(Math.random()*10),Math.floor(Math.random()*10),Math.floor(Math.random()*10)); } }
+qs('#mathRegen').addEventListener('click',()=>{ regenMath(); ok(); }); regenMath();
+
+// Writing
+const WRITE_ITEMS=[
+  {raw:"on saturday sophia and isabelle play at the park", type:"statement", proper:[1,2,4]},
+  {raw:"do you like reading books before bed", type:"question", proper:[]}
+];
+function buildWriting(){ const list=qs('#writeList'); list.innerHTML=''; WRITE_ITEMS.forEach(it=>{ const card=document.createElement('div'); card.className='card';
+  const row=document.createElement('div'); row.className='row'; const words=it.raw.split(' '); const chips=[];
+  words.forEach((w,i)=>{ const b=document.createElement('button'); b.className='word'; b.textContent=w; b.addEventListener('click',()=> b.classList.toggle('sel')); chips.push(b); row.append(b); });
+  const punct=document.createElement('div'); punct.className='row'; punct.style.marginTop='6px'; punct.innerHTML='<span class="chip">End</span>';
+  ['.','?','!'].forEach(p=>{ const bt=document.createElement('button'); bt.className='btn'; bt.textContent=p; bt.addEventListener('click',()=> punct.dataset.pick=p); punct.append(bt); });
+  const exp=document.createElement('div'); exp.className='exp'; exp.textContent='Tap first word + names to capitalize; choose end mark.';
+  card.append(row,punct,exp); list.append(card); });}
+buildWriting();
+
+// Reading
+const PASSAGE="Sophia and Isabelle walked to the park on Saturday morning. They brought a blue notebook to list the birds they saw along the way.";
+const RQS=[{q:"What day did they go?",choices:["Friday","Saturday","Sunday"],a:1},{q:"What color was the notebook?",choices:["Red","Blue","Green"],a:1}];
+qs('#passage').textContent=PASSAGE;
+function buildReading(){ const box=qs('#readQ'); box.innerHTML=''; RQS.forEach((qq,i)=>{ const card=document.createElement('div'); card.className='card';
+  card.innerHTML=`<div class="row"><div class="chip">Q${i+1}</div><div>${qq.q}</div></div><div data-c></div><div class="exp" data-e></div>`;
+  const c=card.querySelector('[data-c]'), e=card.querySelector('[data-e]'); qq.choices.forEach((opt,ix)=>{ const b=document.createElement('button'); b.className='choice'; b.textContent=opt;
+    b.addEventListener('click',()=>{ if(ix===qq.a){ b.classList.add('correct'); e.innerHTML='<b style="color:#16a34a">Correct!</b>'; ok(); } else { b.classList.add('wrong'); e.textContent='Try again — scan for key words.'; no(); } });
+    c.append(b); }); box.append(card); });}
+buildReading();
+
+// Games
+const arena=qs('#arena');
+qs('#gSentence')?.addEventListener('click',()=>{ if(!arena) return; arena.innerHTML=''; const words=["the","blue","notebook","fell","down"], target="The blue notebook fell down."; words.sort(()=>Math.random()-.5);
+  const row=document.createElement('div'); words.forEach(w=>{ const b=document.createElement('button'); b.className='word'; b.textContent=w; b.addEventListener('click',()=>{ b.disabled=true; out.textContent+=(out.textContent?' ':'')+w; if(out.textContent.trim()+'.'===target.toLowerCase()){ out.textContent=target; ok(); } }); row.append(b); });
+  const out=document.createElement('div'); out.className='exp'; out.textContent="Build the sentence."; arena.append(row,out);
+});
+qs('#gPOS')?.addEventListener('click',()=>{ if(!arena) return; arena.innerHTML=''; const s="Sophia and Isabelle play at the park."; const words=s.replace('.','').split(' ');
+  const hint=document.createElement('div'); hint.className='chip'; hint.textContent="Tap nouns [N] and verbs [V]."; arena.append(hint);
+  words.forEach(w=>{ const b=document.createElement('button'); b.className='word'; b.textContent=w; b.addEventListener('click',()=>{ if(['Sophia','Isabelle','park'].includes(w)){ b.textContent=w+' [N]'; b.classList.add('sel'); ok(); } else if(w==='play'){ b.textContent=w+' [V]'; b.classList.add('sel'); ok(); } else { no(); } }); arena.append(b); });
+});
+qs('#g19')?.addEventListener('click',()=>{ if(!arena) return; arena.innerHTML=''; const board=document.createElement('div'); const nums=[]; while(nums.length<12) nums.push(Math.floor(Math.random()*10)); nums.splice(0,3,7,9,3);
+  let sel=[]; function toggle(i,btn){ if(btn.classList.contains('sel')){ btn.classList.remove('sel'); sel=sel.filter(x=>x!==i); } else if(sel.length<3){ btn.classList.add('sel'); sel.push(i); }
+    if(sel.length===3){ const sum=sel.map(i=> parseInt(board.children[i].dataset.val,10)).reduce((a,b)=>a+b,0); if(sum===19){ ok(); sel.sort((a,b)=>b-a).forEach(i=>board.children[i].remove()); } else { no(); }
+      sel=[]; qsa('.bubbleNum.sel',board).forEach(b=>b.classList.remove('sel')); } }
+  nums.forEach((n,i)=>{ const b=document.createElement('button'); b.className='bubbleNum'; b.dataset.val=n; b.textContent=n; b.addEventListener('click',()=>toggle(i,b)); board.append(b); }); arena.append(board);
+});
+</script>
+
+<!-- Register service worker (for PWA/offline when hosted) -->
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
